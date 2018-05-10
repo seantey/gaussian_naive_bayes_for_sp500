@@ -21,9 +21,19 @@
 # Re-written as:
 # P(Y=1|Xij) = P(Xi1|Y=1)...P(Xip|Y=1)P(Y=1) / P(Xi1|Y=1)...P(Xip|Y=1)P(Y=1) + P(Xi1|Y=0)...P(Xip|Y=1)P(Y=0)
 
+#bayesian estimate assumes mu follows prior ~ N(0,1)
+
+bayesian_estimate <- function(sigma,means,n) {
+  
+  out <- ((sigma^2)/(sigma^2 + n))*((n/sigma^2)*means)
+  return(out)
+  
+}
+
 # Function Name: gnb_check_input()
 # Parameters: X -> Data Matrix, y -> Response vector (labels/classes)
 # Purpose: Function for checking input to be used in classifier
+
 gnb_check_input <- function(X,y){
   # Guard statements, ensures input data validity.
   if(!is.data.frame(X)) {
@@ -95,11 +105,14 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
     
   } else {
     # Some bayes estimator function output:
-    mew_one = sapply(X_given_one_subset,mean) # replace mean function with something else!
-    sigma_one = sapply(X_given_one_subset,sd) # replace sd function with something else!
-    
-    mew_zero = sapply(X_given_zero_subset,mean) # replace mean function with something else!
-    sigma_zero = sapply(X_given_zero_subset,sd) # replace sd function with something else!
+    n <- nrow(X)
+    mew_one <- sapply(X_given_one_subset,mean) # replace mean function with something else!
+    sigma_one <- sapply(X_given_one_subset,sd) # replace sd function with something else!
+    mew_one <- bayesian_estimate(sigma_one,mew_one,n)
+
+    mew_zero <- sapply(X_given_zero_subset,mean) # replace mean function with something else!
+    sigma_zero <- sapply(X_given_zero_subset,sd) # replace sd function with something else!
+    mew_zero <- bayesian_estimate(sigma_zero,mew_zero,n)
     
   }  
   
@@ -169,8 +182,8 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
   # Generate a named list for easy access to elements. 
   # E.g. output_list$priors will access first element etc
   output_list <- list(priors = output_priors, class_conditional_DF_list = class_conditional_DF_list,
-                      posteriors_DF = posteriors_DF, predictions = predictions,
-                      accuracy = accuracy)
+                      posteriors_DF = posteriors_DF, predictions = predictions, means_zero = mew_zero, means_one = mew_one,
+                      accuracy = accuracy,sigma_one = sigma_one,sigma_zero = sigma_zero)
   
   return(output_list)
   

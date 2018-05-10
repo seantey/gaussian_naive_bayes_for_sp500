@@ -71,13 +71,9 @@
 
 \newpage
 
-\section{Bayesian Inference}
+\section{Bayes Estimators}
 
-\newpage
-
-\subsection{Bayes Estimators}
-
-\subsubsection{Point Estimation}
+\subsection{Point Estimation}
 
 \paragraph{Bayesian Estimation of Binomial Distribution's Parameter}\mbox{}\\
 
@@ -111,16 +107,39 @@ $Y \sim BIN(n,\theta)$, we want to find a bayes estimator for $\theta$, which we
 Once we've calculated $P(y)$ we can now calculate $P(\theta|y)$.
 
 \begin{align*}
-P(\theta|y) = \frac{P(y|\theta)P(\theta)}{\int P(y|\theta)P(\theta) d\theta}
+P(\theta|y) 
+&= \frac{P(y|\theta)P(\theta)}{\int P(y|\theta)P(\theta) d\theta}\\
+&= \frac{\cancel{\binom{n}{y}}\theta^{y}(1-\theta)^{n-y} \cancel{\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}} \theta^{\alpha-1}(1-\theta)^{\beta-1} }  
+{ \cancel{\binom{n}{y}\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}} \times \frac{\Gamma(\alpha + y-1)\Gamma(\beta+n-y)}{\Gamma(\alpha+\beta+n)}}\\
+&=\frac{\Gamma(\alpha+\beta+n)}{\Gamma(\alpha + y-1)\Gamma(\beta+n-y)} \theta^{\alpha+y-1} (1-\theta)^{\beta+n-y-1}\\
+&=Beta(\alpha+y,\beta+n-y)
 \end{align*}
 
+So $P(\theta|Y=y) \sim Beta(\alpha+y,\beta+n-y)$ and Bayes estimator for $\theta = E[P(\theta|y)] = \frac{\alpha+y}{\alpha+\beta+n}$\newline
+
+We can also set $\alpha=\beta=1$ to make $\theta \sim UNIF(0,1)$ because $Beta(1,1) \sim UNIF(0,1)$. This essentially says we have no prior info on $\theta$ it also simplifies a lot of the computation.
+
 \newpage
 
-\subsubsection{Interval Estimation}
+\subsection{Interval Estimation}
+Consider some parameter $\theta$ of some distribution $X \sim f(\theta)$.\newline
+
+The Bayesian confidence interval at confidence $(1-\alpha)$\% is equal to [$F_{\frac{\alpha}{2}}(x)$,$F_{1-\frac{\alpha}{2}}(x)$], where $F_{v}(x)$ is the quantile of order $v$ for the posterior distribution $p(\theta|X)$
+
+\subsection{Example of Interval Estimation}
+
+Let's say flipping a coin has probability $p$ to get heads. We toss the coin 200 times and we observe that the coin lands on heads 80 times. We assume the prior probability of parameter $p$ to be $P(p) \sim Beta(1,1) = UNIF(0,1)$.\newline
+
+$X \sim BIN(200,p), y = 80, n-y = 120$ and from the previously calculated bayesian point estimator for binomial we know that $f_{p}(p|x) \sim Beta(1+y, 1+(200-y) = Beta(81,121)$.
+
+The 95\% Bayesian confidence interval for $p$ is [$F_{0.025}(x)$,$F_{0.0975}(x)$], where $F_{v}$ is the quantile of order $v$ for the posterior distribution $f_{p}(p|x) \sim Beta(81,121)$.\newline
+
+95\% Confidence Interval = [0.3346,0.4693]
+
 
 \newpage
 
-\subsubsection{Example in R}
+\subsection{Example in R}
 
 
 \newpage
@@ -213,10 +232,12 @@ Y =
 where i = 1,...,n trading days and j= 1...p stock metrics (features), $y_{n} \in {0,1}$
 \end{center}
 
+For example:
+
 \begin{center}
-\begin{blockarray}{rcccc}
+\begin{blockarray}{rccccc}
  & \thead{Metric\textsubscript{1}} & \thead{Metric\textsubscript{2}} & \thead{\dots} & \thead{\dots} & \thead{Metric\textsubscript{p}}\\
-\begin{block}{>{\small}r[cccc]}
+\begin{block}{>{\small}r[ccccc]}
 TradingDay\textsubscript{1} & $x_{11}$ & $x_{12}$ & $x_{13}$ & \dots  & $x_{1p}$ \\
 TradingDay\textsubscript{2} & $x_{21}$ & $x_{22}$ & $x_{23}$ & \dots  & $x_{2p}$ \\
 & $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
@@ -225,16 +246,6 @@ TradingDay\textsubscript{n} & $x_{n1}$ & $x_{n2}$ & $x_{n3}$ & \dots  & $x_{np}$
 \end{blockarray}
 \end{center}
 
-$\left[\begin{array}{r|cc}
-\text{metric 1} & metric 2 & metric 3\\
-x11 & x12 & x13
-\end{array}\right]$
-
-\begin{tabular}{cccc}
-&&metric 1 & metric 2\\
-tt&\multirow{2}{*}{$\left[\right.$}& $x11$ & $x12$\\
-tt& &$x11$ & $x12$
-\end{tabular}
 
 \newpage
 

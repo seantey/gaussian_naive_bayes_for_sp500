@@ -1,5 +1,3 @@
-setwd("/home/shyam/Desktop/USF/spring2018/math373/gaussian_naive_bayes_for_sp500/")
-
 
 stock_data_raw <- read.table("test_stock_data.txt")
 
@@ -49,4 +47,16 @@ y_stocks_test <- stock_data_raw[test_start_index:nrow(stock_data_raw),ncol(stock
 y_stocks_test <- as.integer(y_stocks_test)
 
 
+format(1810032000, scientific = FALSE)
 
+print("MLE")
+print("Means for class 0")
+
+format(nb_output$means_zero, scientific = FALSE)
+
+print("Means for class 1")
+print(nb_output$means_one)
+
+means_df <- data.frame(nb_output_mle$means_zero,nb_output_mle$means_one,nb_output_bayes$means_zero,nb_output_bayes$means_one)
+
+write.table(means_df,file = "means_file", sep = " & ")

@@ -69,7 +69,11 @@
 
 \section{Abstract}
 
-\newpage
+Many popular methods of parameter estimation, such Maximum Likelihood Estimation estimate parameters by solely using information from given data. However, in many real life scenarios, you generally have prior knowledge about the parameters. Classical statistical methods disregard this knowledge in their estimators, providing a weaker estimator than if they included it. Bayesian parameter estimation attempts to incorporate prior knowledge (distributional behavior) of the parameter in question.\newline
+
+In this paper, we will go through some simple examples of using bayesian parmeter estimation and interval estimation. Afterwards we will demonstrate an application using bayesian inference to create a classifier. We will also compare the performance of the classifier when we use MLE vs Bayes Estimators.
+
+
 
 \section{Bayes Estimators}
 
@@ -80,16 +84,16 @@
 Bayes Rule says:
 
 \begin{align*} 
-P(\theta|y) &= \frac{P(y|\theta)P(\theta)}{P(y)} \\
-&= \frac{P(y|\theta)P(\theta)}{\int P(y|\theta)P(\theta) d\theta} \quad \text{(By law of total probability)}
+f_{\theta|y}(\theta|y) &= \frac{f_{\theta|y}(\theta|y)f_{\theta}(\theta)}{f_{y}(y)} \\
+&= \frac{f_{y|\theta}(y|\theta)f_{\theta}(\theta)}{\int f_{\theta|y}(\theta|y)f_{\theta}(\theta) d\theta} \quad \text{(By law of total probability)}
 \end{align*}
 
-$Y \sim BIN(n,\theta)$, we want to find a bayes estimator for $\theta$, which we can get from\\ $\hat{\theta}_{Bayes} = T = E[P(\theta|y)]$ which is the expected value of the posterior. To use the bayes rule, we have to assume a prior distribution for $\theta$. For simplicity in the calculation, we will assume $\theta \sim Beta(\alpha,\beta)$ where $\alpha$ and $\beta$ are known.\newline
+$Y \sim BIN(n,\theta)$, we want to find a bayes estimator for $\theta$, which we can get from\\ $\hat{\theta}_{Bayes} = T = E[f_{\theta|y}(\theta|y)]$ which is the expected value of the posterior. To use the bayes rule, we have to assume a prior distribution for $\theta$. For simplicity in the calculation, we will assume $\theta \sim Beta(\alpha,\beta)$ where $\alpha$ and $\beta$ are known.\newline
 
-\noindent So now we will calculate: $P(\theta|y) = \frac{P(y|\theta)P(\theta)}{\int P(y|\theta)P(\theta) d\theta}$ by first calculating the denominator $P(y) = \int P(y|\theta)P(\theta) d\theta$
+\noindent So now we will calculate: $f_{\theta|y}(\theta|y) = \frac{f_{\theta|y}(\theta|y)f_{\theta}(\theta)}{\int f_{\theta|y}(\theta|y)f_{\theta}(\theta) d\theta}$ by first calculating the denominator $f_{y}(y) = \int f_{\theta|y}(\theta|y)f_{\theta}(\theta) d\theta$
 
 \begin{align*}
-\int P(y|\theta)P(\theta) d\theta &= \int \binom{n}{y}\theta^{y}(1-\theta)^{n-y} \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \theta^{\alpha-1}(1-\theta)^{\beta-1} d\theta\\
+\int f_{\theta|y}(\theta|y)f_{\theta}(\theta) d\theta &= \int \binom{n}{y}\theta^{y}(1-\theta)^{n-y} \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \theta^{\alpha-1}(1-\theta)^{\beta-1} d\theta\\
 &=\binom{n}{y}\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \int \theta^{y}(1-\theta)^{n-y} \theta^{\alpha-1}(1-\theta)^{\beta-1} d\theta\\
 &\text{Define } \binom{n}{y}\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \text{ to be $c_1$}. \\
 &= c_{1} \int \theta^{\alpha + y - 1}(1-\theta)^{\beta + n-y -1}  d\theta\\
@@ -100,31 +104,36 @@ $Y \sim BIN(n,\theta)$, we want to find a bayes estimator for $\theta$, which we
 &= c_{1}B(\alpha_0,\beta_0) \cancelto{1}{\int \frac{\theta^{\alpha + y - 1}(1-\theta)^{\beta + n-y -1}}{B(\alpha_0,\beta_0)}  d\theta}\\
 &= c_{1}B(\alpha_0,\beta_0)\\
 &= \binom{n}{y}\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \times \frac{\Gamma(\alpha + y-1)\Gamma(\beta+n-y)}{\Gamma(\alpha+\beta+n)}\\
-&= P(y)
+&= f_{y}(y)
 \end{align*}
 
-\newpage
-Once we've calculated $P(y)$ we can now calculate $P(\theta|y)$.
+Once we've calculated $f_{y}(y)$ we can now calculate $f_{\theta|y}(\theta|y)$.
 
 \begin{align*}
-P(\theta|y) 
-&= \frac{P(y|\theta)P(\theta)}{\int P(y|\theta)P(\theta) d\theta}\\
+f_{\theta|y}(\theta|y) 
+&= \frac{f_{\theta|y}(\theta|y)f_{\theta}(\theta)}{\int f_{\theta|y}(\theta|y)f_{\theta}(\theta) d\theta}\\
 &= \frac{\cancel{\binom{n}{y}}\theta^{y}(1-\theta)^{n-y} \cancel{\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}} \theta^{\alpha-1}(1-\theta)^{\beta-1} }  
 { \cancel{\binom{n}{y}\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}} \times \frac{\Gamma(\alpha + y-1)\Gamma(\beta+n-y)}{\Gamma(\alpha+\beta+n)}}\\
 &=\frac{\Gamma(\alpha+\beta+n)}{\Gamma(\alpha + y-1)\Gamma(\beta+n-y)} \theta^{\alpha+y-1} (1-\theta)^{\beta+n-y-1}\\
 &=Beta(\alpha+y,\beta+n-y)
 \end{align*}
 
-So $P(\theta|Y=y) \sim Beta(\alpha+y,\beta+n-y)$ and Bayes estimator for $\theta = E[P(\theta|y)] = \frac{\alpha+y}{\alpha+\beta+n}$\newline
+So $P(\theta|Y=y) \sim Beta(\alpha+y,\beta+n-y)$ and Bayes estimator for $\theta = E[f_{\theta|y}(\theta|y)] = \frac{\alpha+y}{\alpha+\beta+n}$\newline
 
 We can also set $\alpha=\beta=1$ to make $\theta \sim UNIF(0,1)$ because $Beta(1,1) \sim UNIF(0,1)$. This essentially says we have no prior info on $\theta$ it also simplifies a lot of the computation.
 
 \newpage
+\subsection{Example of Point Estimation}
+
+Let's say we flip a coin 300 times and we observe heads 90 times. We can model this as a random variable $X \sim BIN(300,p)$ where $p$ is the probability of success of getting heads. We want to find the bayes estimate for $p$, assuming the prior distribution for $p$ is $f_{p}(p) \sim Beta(1,1)$\newline
+
+From the previous proof we know that the Bayes estimator for $p$ is $\hat{p} = E[f_{p|y}(p|x)] = \frac{\alpha+x}{\alpha+\beta+n}$, therefore $\hat{p} = \frac{1+90}{1+1+300} = \frac{91}{302}$. In comparison, the MLE of $\hat{p} = \frac{\text{number of success}}{\text{number of trials}}$ = $\frac{x}{n}$ = $\frac{90}{300}$ 
+
 
 \subsection{Interval Estimation}
 Consider some parameter $\theta$ of some distribution $X \sim f(\theta)$.\newline
 
-The Bayesian confidence interval at confidence $(1-\alpha)$\% is equal to [$F_{\frac{\alpha}{2}}(x)$,$F_{1-\frac{\alpha}{2}}(x)$], where $F_{v}(x)$ is the quantile of order $v$ for the posterior distribution $p(\theta|X)$
+The Bayesian confidence interval at confidence $(1-\alpha)$\% is equal to [$F_{\frac{\alpha}{2}}(x)$,$F_{1-\frac{\alpha}{2}}(x)$], where $F_{v}(x)$ is the quantile of order $v$ for the posterior distribution $f_{\theta|X}(\theta|X)$
 
 \subsection{Example of Interval Estimation}
 
@@ -135,12 +144,6 @@ $X \sim BIN(200,p), y = 80, n-y = 120$ and from the previously calculated bayesi
 The 95\% Bayesian confidence interval for $p$ is [$F_{0.025}(x)$,$F_{0.0975}(x)$], where $F_{v}$ is the quantile of order $v$ for the posterior distribution $f_{p}(p|x) \sim Beta(81,121)$.\newline
 
 95\% Confidence Interval = [0.3346,0.4693]
-
-
-\newpage
-
-\subsection{Example in R}
-
 
 \newpage
 \section{Gaussian Naive Bayes Classifier}
@@ -186,7 +189,7 @@ For example if the subset of observations $X_{i}$ with label = ``grape'' is size
 \subsubsection{Empirical estimate for continunous values}
 There is one last component to this puzzle which is how do we make empirical estimates for the conditional probability $P(x_{i}|Y=grape)$ if $x_{i}$ is a continuous value. So far the features we have: color, shape, taste are discrete features. What if we incorporate continuous features to our model such as diameter?\newline
 
-A solution to this is to assume that $P(x_{i}|Y=grape)$ follows some distribution. In our case, we will assume that $P(x_{i}|Y=grape)$ follows a \textbf{gaussian distribution}. To calculate $P(x_{i}|Y=grape)$ we will need to estimate the mean and variance from a given feature with a given label. We can simple use sample mean and sample variance or try a bayes estimator. Note that if we had p features and k classes, we would need p$\times$k number of means and another p$\times$k variances.\newline
+A solution to this is to assume that $P(x_{i}|Y=grape)$ follows some distribution. In our case, we will assume that $P(x_{i}|Y=grape)$ follows a \textbf{gaussian distribution}. To calculate $P(x_{i}|Y=grape)$ we will need to estimate the mean and variance from a given feature with a given label. We can simply use sample mean and sample variance or try a bayes estimator. Note that if we had p features and k classes, we would need p$\times$k number of means and another p$\times$k variances.\newline
 
 Once we have the estimated means and variances, we will just calculate the probability density for each continuous entry in data X. Notice that we are calculating the density function, this makes the notation $P(x_{i}|Y=grape)$ inaccurate, but we will stick to it for simplicity. This brings up another question, will the value of $P(Y|X)=\frac{P(X|Y)P(Y)}{P(X)}$ still result in a probability ranging from 0 to 1? The answer is yes, because looking at the previously expanded equation carefully:
 
@@ -198,7 +201,18 @@ P(Y=grape|X=purple,round,sweet) &= \frac{P(X|Y=grape)P(Y=grape)}{\sum_{k} P(X|Y=
 Notice that the numerator is part of the denominator. This essentially normalizes the equation to [0,1] because at most the highest possible value for $P(Y|X)$ is 1, which is the case where $P(X|grape)P(grape)\neq0$ and $P(X|orange)P(orange)=P(X|other)P(other)=0$. 
 
 \newpage
-\subsection{Application Example}
+\subsection{Application}
+
+\subsubsection{Bayesian Estimation of Normal Distribution Parameters}
+
+Assume we have a random variable $X \sim N(\mu ,\sigma ^2)$, where $\sigma^2$ is known.
+
+prior distribution: $f_\mu(\mu) \sim N(\mu_0,\sigma_0)$
+
+posterior distribution: $f_{\mu|x} (\mu|x ) \sim N(((\frac{n}{\sigma^2} + \frac{1}{\mu_0})^{-1}) \times ([\frac{n}{\sigma^2}\times \bar{x}] + \frac{1}{\sigma_{0}^2}\mu_0 ),(\frac{n}{\sigma^2} + \frac{1}{\mu_0})^{-1})$
+
+
+
 
 \subsubsection{Description}
 Here we will attempt to use the gaussian naive bayes classifier described previously to predict the movement of the Standard \& Poor's 500 stock market index. The possible prediction for classes are Y = k where k = 0,1.\newline
@@ -211,7 +225,7 @@ We will use stock market data/metrics such as price and volume as features or pr
 The data matrix X will be a n$\times$p matrix and response(label) vector Y will be a n$\times$1 vector which looks like:
 
 \[
-X_{ij} = 
+X = 
 \begin{bmatrix}
     x_{11} & x_{12} & x_{13} & \dots  & x_{1p} \\
     x_{21} & x_{22} & x_{23} & \dots  & x_{2p} \\
@@ -232,19 +246,29 @@ Y =
 where i = 1,...,n trading days and j= 1...p stock metrics (features), $y_{n} \in {0,1}$
 \end{center}
 
-For example:
+Stock market Model:
 
-\begin{center}
-\begin{blockarray}{rccccc}
- & \thead{Metric\textsubscript{1}} & \thead{Metric\textsubscript{2}} & \thead{\dots} & \thead{\dots} & \thead{Metric\textsubscript{p}}\\
-\begin{block}{>{\small}r[ccccc]}
-TradingDay\textsubscript{1} & $x_{11}$ & $x_{12}$ & $x_{13}$ & \dots  & $x_{1p}$ \\
-TradingDay\textsubscript{2} & $x_{21}$ & $x_{22}$ & $x_{23}$ & \dots  & $x_{2p}$ \\
-& $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
-TradingDay\textsubscript{n} & $x_{n1}$ & $x_{n2}$ & $x_{n3}$ & \dots  & $x_{np}$ \\
-\end{block}
-\end{blockarray}
-\end{center}
+$x_i =$ ith column of X\newline
+
+$ f_{Y|X}(Y|X) \sim BIN(1,p)$,  where $p$ is probability that the S\&P500 increases.\newline
+
+$ f_{x_{i}|Y}(x_{i}|Y) \sim N(\mu_{i},s_i^2)$, we are assuming the variance is known and is the sample variance $s_i^2$\newline
+
+$f_Y(Y)$ follows the empirical distribution\newline
+
+$f_{Y|X}(Y|X) = \frac{f_{X|Y}(X|Y)}{\sum_{y \in Y}f_{X|Y}(X|Y)f_{Y}(Y)} \sim BIN(1,p)$\newline
+
+$f_{\mu_{i}}(\mu_{i}) \sim N(0,1)$\newline
+
+$ f_{\mu_{i}|x_{i}}(\mu_{i}|x_{i}) \sim N((\frac{n}{s_i^2} + 1)^{-1}\times[\frac{n}{s_i^2}\bar{x_{i}}],(\frac{n}{s_i^2} + 1)^{-1})$\newline
+
+
+Bayes estimator:  $\hat{\mu_{i}}_{Bayes} = E[f_{\mu_{i}|x_{i}}(\mu_{i}|x_{i})] = (\frac{n}{n + s_i^2}\times \bar{x_{i}})$\newline
+
+
+
+This shows that if we assume a prior of the standard normal distribution, the sample variance is small, the bayes estimator for the mean is very close to the mle estimator, which is just the sample average. 
+
 
 
 \newpage
@@ -383,14 +407,49 @@ gnb_check_input <- function(X,y){
 
 \end{lstlisting}
 
+\newpage
 \subsubsection{Findings}
 
-\paragraph{Results from MLE estimators}
+For simplicity our data consists of the Adjusted Closing Price \& Volume from the stocks of the following 7 companies: Apple, Amazon, Nvidia, Facebook, Google, Alibaba, Intel. (Total of 14 features or columns)\newline
 
+We collected data from the period 2017-04-01 to 2018-05-07, which means the number of observations is 275 trading days.\newline
 
-\paragraph{Results from Bayes estimators}
+\begin{center}
+\begin{tabular}{|p{3cm}||p{1cm}|p{1cm}|p{1cm}|  }
+ \hline
+ \multicolumn{4}{|c|}{Estimated Values when Y=1} \\
+ \hline
+ Estimator & APPL & FB & GOOG\\
+ \hline
+ MLE Price Mean & 161.34 & 167.99 & 1002.15 \\
+ \hline
+ Bayes Price Mean & 101.62  & 100.13 & 34.19 \\
+ \hline
+\end{tabular}
+\end{center}
 
-\paragraph{Conclusion}
+\begin{center}
+\begin{tabular}{|p{3cm}|p{1cm}|p{1cm}|p{1cm}|  }
+ \hline
+ \multicolumn{4}{|c|}{Sample Variance when Y=1} \\
+ \hline
+ Stocks & APPL & FB & GOOG\\
+ \hline
+ Sample Variance & 161.57 & 186.35 & 7785.57 \\
+ \hline
+\end{tabular}
+\end{center}
+
+\mbox{}\newline
+We can see that the mle estimate for Google's stock Price is much different than the bayesian estimate. This is because when we assume the prior of standard normal and that our posterior variance is the sample variance, our bayesian estimate is very sensitive to large sample variances. Google's Price has a very high sample variance so the bayesian estimate is very low and very different from the mle estimate. Apple's Price's sample variance is not that large so we can see that it's bayesian estimate is closer to its mle than Google's Price's.
+
+\paragraph{Conclusion}\mbox{}\\
+
+Overall in terms of accuracy, the model with MLE performed much better than the Bayesian. This is partly due to the fact that we are assuming the prior distribution follows a standard normal and the posterior variance is just the sample variance. \newline
+
+Final Thoughts:
+Bayesian Inference is a powerful methodology that includes prior information and assumptions of parameters to improve estimations. Depending on the prior distribution, Bayesian point and interval estimation can be very similar to MLE. However, if the prior distribution is poorly assumed, the estimation can be very useless. From our experience in using Bayesian estimation we would recommend to use it only if there is actual prior knowledge on the behavior of the parameters in question.\newline
+
 
 \end{document}
 

@@ -120,7 +120,7 @@ f_{\theta|y}(\theta|y)
 
 So $P(\theta|Y=y) \sim Beta(\alpha+y,\beta+n-y)$ and Bayes estimator for $\theta = E[f_{\theta|y}(\theta|y)] = \frac{\alpha+y}{\alpha+\beta+n}$\newline
 
-We can also set $\alpha=\beta=1$ to make $\theta \sim UNIF(0,1)$ because $Beta(1,1) \sim UNIF(0,1)$. This essentially says we have no prior info on $\theta$ it also simplifies a lot of the computation.
+We can also set $\alpha=\beta=1$ to make $\theta \sim UNIF(0,1)$ because $Beta(1,1) \sim UNIF(0,1)$. This essentially says we have no prior info on $\theta$ and it also simplifies a lot of the computation.
 
 \newpage
 \subsection{Example of Point Estimation}
@@ -267,7 +267,7 @@ Bayes estimator:  $\hat{\mu_{i}}_{Bayes} = E[f_{\mu_{i}|x_{i}}(\mu_{i}|x_{i})] =
 
 
 
-This shows that if we assume a prior of the standard normal distribution, the sample variance is small, the bayes estimator for the mean is very close to the mle estimator, which is just the sample average. 
+This shows that if we assume the prior follows the standard normal distribution, and if the sample variance is small, then the bayes estimator for the mean is very close to the mle estimator, which is just the sample average. 
 
 
 
@@ -301,13 +301,16 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
     
   } else {
     # Some bayes estimator function output:
-    mew_one = sapply(X_given_one_subset,mean) # replace mean function with something else!
-    sigma_one = sapply(X_given_one_subset,sd) # replace sd function with something else!
+    n <- nrow(X)
+    mew_one <- sapply(X_given_one_subset,mean) # replace mean function with something else!
+    sigma_one <- sapply(X_given_one_subset,sd) # replace sd function with something else!
+    mew_one <- bayesian_estimate(sigma_one,mew_one,n)
+
+    mew_zero <- sapply(X_given_zero_subset,mean) # replace mean function with something else!
+    sigma_zero <- sapply(X_given_zero_subset,sd) # replace sd function with something else!
+    mew_zero <- bayesian_estimate(sigma_zero,mew_zero,n)
     
-    mew_zero = sapply(X_given_zero_subset,mean) # replace mean function with something else!
-    sigma_zero = sapply(X_given_zero_subset,sd) # replace sd function with something else!
-    
-  }  
+  }   
   
   # Initialize a data frame of size n x p to hold P(Xij|Y=k) for each entry of matrix X
   X_given_Y_one <- data.frame(matrix(nrow = nrow(X),ncol = ncol(X))) # Y = 1
@@ -370,9 +373,7 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
   
   # Generate a named list for easy access to elements. 
   # E.g. output_list$priors will access prior probabilities etc
-  output_list <- list(priors = output_priors, class_conditional_DF_list = class_conditional_DF_list,
-                      posteriors_DF = posteriors_DF, predictions = predictions,
-                      accuracy = accuracy)
+  output_list <- list(priors = output_priors, class_conditional_DF_list = class_conditional_DF_list, posteriors_DF = posteriors_DF, predictions = predictions, means_zero = mew_zero, means_one = mew_one, accuracy = accuracy,sigma_one = sigma_one,sigma_zero = sigma_zero)
   
   return(output_list)
   
@@ -407,12 +408,26 @@ gnb_check_input <- function(X,y){
 
 \end{lstlisting}
 
+Recall the Bayes estimator is:  $\hat{\mu_{i}}_{Bayes} = E[f_{\mu_{i}|x_{i}}(\mu_{i}|x_{i})] = (\frac{n}{n + s_i^2}\times \bar{x_{i}})$\newline
+
+\begin{lstlisting}[language=R]
+bayesian_estimate <- function(sigma,means,n) {
+  
+  out <- ((sigma^2)/(sigma^2 + n))*((n/sigma^2)*means)
+  return(out)
+  
+}
+
+\end{lstlisting}
+
 \newpage
 \subsubsection{Findings}
 
 For simplicity our data consists of the Adjusted Closing Price \& Volume from the stocks of the following 7 companies: Apple, Amazon, Nvidia, Facebook, Google, Alibaba, Intel. (Total of 14 features or columns)\newline
 
 We collected data from the period 2017-04-01 to 2018-05-07, which means the number of observations is 275 trading days.\newline
+
+After running the classifier with parameter estimation using MLE and Bayes, we see that accuracy of the classifier with MLE is 0.6072 and for Bayes it was 0.4254.
 
 \begin{center}
 \begin{tabular}{|p{3cm}||p{1cm}|p{1cm}|p{1cm}|  }
@@ -443,9 +458,11 @@ We collected data from the period 2017-04-01 to 2018-05-07, which means the numb
 \mbox{}\newline
 We can see that the mle estimate for Google's stock Price is much different than the bayesian estimate. This is because when we assume the prior of standard normal and that our posterior variance is the sample variance, our bayesian estimate is very sensitive to large sample variances. Google's Price has a very high sample variance so the bayesian estimate is very low and very different from the mle estimate. Apple's Price's sample variance is not that large so we can see that it's bayesian estimate is closer to its mle than Google's Price's.
 
+Also, the performance of the classifier is very dependent on the selection of features. So to get a higher accuracy you would need to try out different metrics and see which one gives you the best results.
+
 \paragraph{Conclusion}\mbox{}\\
 
-Overall in terms of accuracy, the model with MLE performed much better than the Bayesian. This is partly due to the fact that we are assuming the prior distribution follows a standard normal and the posterior variance is just the sample variance. \newline
+Overall in terms of accuracy, the model with MLE performed much better than the Bayesian. This is partly due to the fact that we are assuming the prior distribution follows a standard normal and the posterior variance is just the sample variance but it may also be due to our choice of features. \newline
 
 Final Thoughts:
 Bayesian Inference is a powerful methodology that includes prior information and assumptions of parameters to improve estimations. Depending on the prior distribution, Bayesian point and interval estimation can be very similar to MLE. However, if the prior distribution is poorly assumed, the estimation can be very useless. From our experience in using Bayesian estimation we would recommend to use it only if there is actual prior knowledge on the behavior of the parameters in question.\newline

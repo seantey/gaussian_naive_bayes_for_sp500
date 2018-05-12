@@ -1,6 +1,6 @@
 # Gaussian Naive Bayes Classifier
 
-Read the paper: https://github.com/seantey/gaussian_naive_bayes_for_sp500/blob/master/paper.pdf
+Read the paper: https://seantey.github.io/gaussian_naive_bayes_for_sp500/. 
 
 To try out the classifer, first run `gaussian_naive_bayes.R` to load the functions into the Rstudio global environment.
 

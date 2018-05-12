@@ -21,19 +21,10 @@
 # Re-written as:
 # P(Y=1|Xij) = P(Xi1|Y=1)...P(Xip|Y=1)P(Y=1) / P(Xi1|Y=1)...P(Xip|Y=1)P(Y=1) + P(Xi1|Y=0)...P(Xip|Y=1)P(Y=0)
 
-#bayesian estimate assumes mu follows prior ~ N(0,1)
-
-bayesian_estimate <- function(sigma,means,n) {
-  
-  out <- ((sigma^2)/(sigma^2 + n))*((n/sigma^2)*means)
-  return(out)
-  
-}
 
 # Function Name: gnb_check_input()
 # Parameters: X -> Data Matrix, y -> Response vector (labels/classes)
 # Purpose: Function for checking input to be used in classifier
-
 gnb_check_input <- function(X,y){
   # Guard statements, ensures input data validity.
   if(!is.data.frame(X)) {
@@ -57,6 +48,19 @@ gnb_check_input <- function(X,y){
   }
   # Check if y is made of 1's and 0's, where 1 = increase in price since yesterday, 0 = decrease or no increase
   binary_vector_check(y)
+}
+
+# Function Name: bayesian_estimate()
+# Parameters: sigma -> vector of square root of MLE sample variance where each entry corresponds to a feature/column 
+#             means -> MLE mean where each entry corresponds to a feature/column 
+#             n -> number of observation in the design matrix / data matrix
+# Purpose:  Returns a bayesian point estimation for mew assuming a prior distribution which follows the
+#           gaussian normal where sigma^2 is known but mew is unknown. N(mew,sigma^2)
+bayesian_estimate <- function(sigma,means,n) {
+  
+  out <- ((sigma^2)/(sigma^2 + n))*((n/sigma^2)*means)
+  return(out)
+  
 }
 
 # Function Name: gnb_check_input()
@@ -104,15 +108,17 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
     sigma_zero = sapply(X_given_zero_subset,sd)
     
   } else {
-    # Some bayes estimator function output:
+    # Use bayes estimator assuming sigma^2 is known and is equal to sample variance for N(mew,sigma^2)
     n <- nrow(X)
-    mew_one <- sapply(X_given_one_subset,mean) # replace mean function with something else!
-    sigma_one <- sapply(X_given_one_subset,sd) # replace sd function with something else!
-    mew_one <- bayesian_estimate(sigma_one,mew_one,n)
+    MLE_mew_one <- sapply(X_given_one_subset,mean) 
+    MLE_sigma_one <- sapply(X_given_one_subset,sd)
+    
+    mew_one <- bayesian_estimate(MLE_sigma_one,MLE_mew_one,n)
 
-    mew_zero <- sapply(X_given_zero_subset,mean) # replace mean function with something else!
-    sigma_zero <- sapply(X_given_zero_subset,sd) # replace sd function with something else!
-    mew_zero <- bayesian_estimate(sigma_zero,mew_zero,n)
+    MLE_mew_zero <- sapply(X_given_zero_subset,mean) 
+    MLE_sigma_zero <- sapply(X_given_zero_subset,sd)
+    
+    mew_zero <- bayesian_estimate(MLE_sigma_zero,MLE_mew_zero,n)
     
   }  
   

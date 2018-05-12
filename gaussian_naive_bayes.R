@@ -138,7 +138,6 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
     
     for (p in 1:ncol(X)){
       prob_XY <- dnorm(row_data[[p]],mew_one[p],sigma_one[p])
-      print(sigma_one[p])
       X_given_Y_one[i,p] <- prob_XY
     }    
   }
@@ -174,8 +173,6 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
   # If P(Y=1|Xij) > P(Y=0|Xij), i.e. likelihood of class 1 is greater, 
   # we will label the observation row i as class Y = 1
   predictions <- ifelse(posteriors_ones>posteriors_zeros,1,0)
-  
-  
   
   # Generate list of outputs: (1) Prior Probabilities of Y, (2) Class conditional probabilities P(Xij|Y=k),
   # (3) Posterior probabilities, (4) Predicted Labels for each data row, (5) accuracy

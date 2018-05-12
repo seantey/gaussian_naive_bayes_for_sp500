@@ -10,7 +10,6 @@ X_stocks <- stock_data_raw[,1:ncol(stock_data_raw)-1]
 y_stocks <- stock_data_raw[,ncol(stock_data_raw)]
 y_stocks <- as.integer(y_stocks)
 
-print("MLE")
 nb_output_MLE <- gaussian_nb(X_stocks,y_stocks,FALSE)
 nb_output_Bayes <- gaussian_nb(X_stocks,y_stocks,TRUE)
 

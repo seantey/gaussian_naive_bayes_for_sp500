@@ -57,7 +57,10 @@ gnb_check_input <- function(X,y){
 # Purpose:  Returns a bayesian point estimation for mew assuming a prior distribution which follows the
 #           gaussian normal where sigma^2 is known but mew is unknown. N(mew,sigma^2)
 bayesian_estimate <- function(sigma,means,n) {
-  
+  # print("Printing sigma")
+  # print(sigma)
+  # print("Printing")
+  # print(means)
   out <- ((sigma^2)/(sigma^2 + n))*((n/sigma^2)*means)
   return(out)
   
@@ -109,17 +112,16 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
     
   } else {
     # Use bayes estimator assuming sigma^2 is known and is equal to sample variance for N(mew,sigma^2)
-    n <- nrow(X)
-    MLE_mew_one <- sapply(X_given_one_subset,mean) 
-    MLE_sigma_one <- sapply(X_given_one_subset,sd)
-    
-    mew_one <- bayesian_estimate(MLE_sigma_one,MLE_mew_one,n)
+
+    sigma_one <- sapply(X_given_one_subset,sd)
+    sigma_zero <- sapply(X_given_zero_subset,sd)
 
     MLE_mew_zero <- sapply(X_given_zero_subset,mean) 
-    MLE_sigma_zero <- sapply(X_given_zero_subset,sd)
+    MLE_mew_one <- sapply(X_given_one_subset,mean) 
     
-    mew_zero <- bayesian_estimate(MLE_sigma_zero,MLE_mew_zero,n)
-    
+    n <- nrow(X)   
+    mew_one <- bayesian_estimate(sigma_one,MLE_mew_one,n)
+    mew_zero <- bayesian_estimate(sigma_zero,MLE_mew_zero,n)
   }  
   
   # Initialize a data frame of size n x p to hold P(Xij|Y=k) for each entry Xij of data matrix X
@@ -136,6 +138,7 @@ gaussian_nb <- function(X,y,bayes_estimator=FALSE){
     
     for (p in 1:ncol(X)){
       prob_XY <- dnorm(row_data[[p]],mew_one[p],sigma_one[p])
+      print(sigma_one[p])
       X_given_Y_one[i,p] <- prob_XY
     }    
   }
